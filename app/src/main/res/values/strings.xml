@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Dontpad</string>
+    <string name="root_path">www.dontpad.com/</string>
+    <string name="go">GO!</string>
+
+    <string name="tutorial_1">Dont login, just use a URL</string>
+    <string name="tutorial_2">Dont save, text is auto-saved</string>
+    <string name="tutorial_3">Dont juggle attached files, edit online with your friends</string>
+    <string name="tutorial_4">Dont lose your content, download with YourURL.zip </string>
+    <string name="tutorial_5">Dont forget, you can use yourURL/yourFolder/yourSubfolder Dontpad!</string>
+    <string name="tutorial_6">Dontpad!</string>
+
+
+
 </resources>
