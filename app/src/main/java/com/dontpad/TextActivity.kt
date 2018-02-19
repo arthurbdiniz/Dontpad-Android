@@ -22,8 +22,12 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
+import android.view.MenuItem
 
 import android.widget.TextView
+import android.widget.Toast
+
+
 
 
 
@@ -87,6 +91,25 @@ class TextActivity : AppCompatActivity() {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu, menu)
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+
+        return when (item!!.itemId) {
+            R.id.share_path -> {
+                val msg = Toast.makeText(this, "//TODO", Toast.LENGTH_LONG)
+                msg.show()
+                true
+            }
+
+            R.id.download_page ->{
+                val msg = Toast.makeText(this, "//TODO", Toast.LENGTH_LONG)
+                msg.show()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
