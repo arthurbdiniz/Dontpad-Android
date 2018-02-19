@@ -3,6 +3,7 @@ package com.dontpad
 import android.annotation.SuppressLint
 
 import android.content.Context
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -97,8 +98,7 @@ class TextActivity : AppCompatActivity() {
 
         return when (item!!.itemId) {
             R.id.share_path -> {
-                val msg = Toast.makeText(this, "//TODO", Toast.LENGTH_LONG)
-                msg.show()
+                sharePathIntent()
                 true
             }
 
@@ -221,6 +221,15 @@ class TextActivity : AppCompatActivity() {
                 sbIsShown = false
             }
         }
+    }
+
+    private fun sharePathIntent(){
+        var shareBody = "This is my path in Dontpad! www.dontpad.com" + title
+        val sharingIntent = Intent(android.content.Intent.ACTION_SEND)
+        sharingIntent.type = "text/plain"
+        sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "")
+        sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody)
+        startActivity(Intent.createChooser(sharingIntent, resources.getString(R.string.share_using)))
     }
 
 }
