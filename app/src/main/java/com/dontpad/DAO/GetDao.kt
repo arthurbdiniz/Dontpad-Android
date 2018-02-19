@@ -19,7 +19,7 @@ class GetDao(private val url: String, private val mediaType: MediaType?) : Async
                 .build()
         try {
             val response = client.newCall(request).execute()
-            Log.d("SERVER_DAO", response.body()!!.toString())
+//            Log.d("SERVER_DAO", response.body()!!.toString())
             return response.body()!!.string()
         } catch (e: IOException) {
             e.printStackTrace()
