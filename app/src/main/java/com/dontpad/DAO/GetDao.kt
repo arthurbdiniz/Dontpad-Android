@@ -13,7 +13,6 @@ class GetDao(private val url: String, private val mediaType: MediaType?) : Async
 
         Log.d("SERVER_DAO", url)
 
-
         val request = okhttp3.Request.Builder()
                 .url(url)
                 .get()

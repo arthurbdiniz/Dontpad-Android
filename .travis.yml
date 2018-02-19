@@ -1,0 +1,42 @@
+language: android
+jdk: oraclejdk8
+sudo: require
+env:
+  global:
+    - ANDROID_TARGET=android-27
+    - ANDROID_ABI=armeabi-v7a
+
+android:
+    components:
+
+        - tools
+        - tools
+        - platform-tools
+        - build-tools-26.0.2
+        - android-27
+        - android-26
+        - android-25
+        - android-24
+        - android-23
+        - android-22
+        - extra-google-m2repository
+        - extra-android-m2repository
+        - extra-android-support
+        - extra-google-google_play_services
+        - fastlane
+
+    licenses:
+        - 'android-sdk-preview-license-52d11cd2'
+        - 'android-sdk-license-.+'
+        - 'google-gdk-license-.+'
+
+before_install:
+    - yes | sdkmanager "platforms;android-27"
+    - bash .travis-android-license-bugfix.sh
+
+before_script:
+    - chmod +x gradlew
+    - chmod a+x fastlane/travis.sh
+
+script:
+   - ./fastlane/travis.sh
