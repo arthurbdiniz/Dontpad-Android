@@ -33,5 +33,6 @@ dependencies {
 
     compile 'com.squareup.okhttp3:okhttp:3.8.0'
     compile 'com.android.support:appcompat-v7:27.0.2'
+    compile 'com.android.support:design:27.0.2'
 
 }

@@ -1,6 +1,8 @@
 package com.dontpad
 
 import android.annotation.SuppressLint
+
+import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -16,25 +18,34 @@ import android.text.Editable
 import android.view.Menu
 import com.dontpad.DAO.RequestHandler
 
+import android.graphics.Color
+import android.net.ConnectivityManager
+import android.support.design.widget.Snackbar
+import android.support.v4.content.ContextCompat
+
+import android.widget.TextView
+
+
 
 class TextActivity : AppCompatActivity() {
 
-    val TAG: String = "TextActivity"
+    private val TAG: String = "TextActivity"
 
-    var lastUpdate: String? = "0"
-    var body: String? = ""
-    var changed: Boolean = false
+    private var sbIsShown: Boolean = false
+    private var textChanged: Boolean = false
+    private var changed: Boolean = false
 
-    var serverResponse: String? = ""
-
-    var textChanged: Boolean = false
     private var toolbar: Toolbar? = null
+    private var snackbar: Snackbar?= null
+    private var textArea: EditText? = null
 
+    private var lastUpdate: String? = "0"
+    private var body: String? = ""
 
-    var textArea: EditText? = null
-    var url = "http://www.dontpad.com/"
-    var urlGet = ".body.json"
-    val INTENT_PATH= "path"
+    private var serverResponse: String? = ""
+    private var url = "http://www.dontpad.com/"
+    private var urlGet = ".body.json"
+    private val INTENT_PATH= "path"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,15 +54,12 @@ class TextActivity : AppCompatActivity() {
         textArea = findViewById(R.id.edit_text_area)
         initToolbar()
 
-
-
         textArea!!.addTextChangedListener(object : TextWatcher {
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (before > 0){
                     textChanged = true
                 }
-                Log.d(TAG, "Text Changed... " + start + " " + before + " " + count)
             }
 
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int,
@@ -86,50 +94,22 @@ class TextActivity : AppCompatActivity() {
         return true
     }
 
-    fun update() {
+    private fun update() {
         val handler = Handler()
         val timer = Timer()
         val doAsynchronousTask = object : TimerTask() {
             @SuppressLint("LongLogTag")
             override fun run() {
                 handler.post({
-
-
-                    if(textChanged){
-                        textChanged = false
-
-                        lastUpdate = RequestHandler(url, getTextParams()).execute().get()
-                        Log.d(TAG, lastUpdate)
-                    }
-
-                    Log.d(TAG + "lastUpdatemidle", lastUpdate)
-
-                    val urlGetWithParameters = getLastUpdateUrl(url + urlGet, lastUpdate)
-                    serverResponse = GetDao(urlGetWithParameters, null).execute("").get()
-
-                    Log.d(TAG, serverResponse)
-
-                    val jsonObject = JSONObject(serverResponse)
-                    changed = jsonObject.getBoolean("changed")
-
-                    if(changed){
-                        lastUpdate = jsonObject.getString("lastUpdate")
-                        body = jsonObject.getString("body")
-
-
-                        textArea!!.setText(body)
-                    }
-
-                    Log.d(TAG + "lastUpdate", lastUpdate)
-
+                    getData()
+                    postData()
                 })
             }
         }
-        timer.schedule(doAsynchronousTask, 0, 10000) //execute in every 50000 ms
+        timer.schedule(doAsynchronousTask, 0, 5000) //execute in every 50000 ms
     }
 
     private fun getTextParams(): HashMap<String, String> {
-
         val params = HashMap<String, String>()
         params["text"] = textArea!!.text.toString()
 
@@ -137,8 +117,6 @@ class TextActivity : AppCompatActivity() {
 
     }
 
-    // Method that creates a url with parameters and sends it to api, it returns a response if it worked or not
-    // Creates json
     private fun getLastUpdateUrl(url: String, lastUpdate: String?): String {
         val builder = HttpUrl.parse(url)!!.newBuilder()
 
@@ -146,11 +124,80 @@ class TextActivity : AppCompatActivity() {
         return builder.build().toString()
     }
 
-    fun initToolbar() {
+    private fun initToolbar() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
         supportActionBar!!.setDisplayShowHomeEnabled(true)
+    }
+
+    fun isOnline(): Boolean {
+        val conMgr = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val netInfo = conMgr.activeNetworkInfo
+
+        if (netInfo == null || !netInfo.isConnected || !netInfo.isAvailable) {
+            if(!sbIsShown){
+                snackbarDisplay()
+                sbIsShown = true
+            }
+            return false
+        }
+        return true
+    }
+
+    private fun snackbarDisplay(){
+        snackbar = Snackbar
+                .make(findViewById(R.id.linearLayout), R.string.no_internet, Snackbar.LENGTH_INDEFINITE)
+
+        val sbView = snackbar!!.view
+        sbView.setBackgroundColor(ContextCompat.getColor(applicationContext, R.color.red))
+
+        val textView = sbView.findViewById(android.support.design.R.id.snackbar_text) as TextView
+        textView.setTextColor(Color.WHITE)
+        snackbar!!.show()
+    }
+
+    private fun getData(){
+        if(isOnline()){
+
+            val urlGetWithParameters = getLastUpdateUrl(url + urlGet, lastUpdate)
+            serverResponse = GetDao(urlGetWithParameters, null).execute("").get()
+
+            if(serverResponse != null){
+                val jsonObject = JSONObject(serverResponse)
+                changed = jsonObject.getBoolean("changed")
+
+                if(changed){
+                    lastUpdate = jsonObject.getString("lastUpdate")
+                    body = jsonObject.getString("body")
+                    textArea!!.setText(body)
+                }
+
+                Log.d(TAG + "lastUpdate", lastUpdate)
+
+                if(sbIsShown){
+                    snackbar!!.dismiss()
+                    sbIsShown = false
+                }
+            }
+        }
+    }
+
+    private fun postData()   {
+        if(isOnline()) {
+
+            if (textChanged) {
+                textChanged = false
+
+                lastUpdate = RequestHandler(url, getTextParams()).execute().get()
+                Log.d(TAG, lastUpdate)
+            }
+
+            if(sbIsShown){
+                snackbar!!.dismiss()
+                sbIsShown = false
+            }
+        }
     }
 
 }

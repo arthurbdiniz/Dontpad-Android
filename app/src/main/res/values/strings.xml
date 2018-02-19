@@ -10,6 +10,7 @@
     <string name="tutorial_5">Dont forget, you can use yourURL/yourFolder/yourSubfolder Dontpad!</string>
     <string name="tutorial_6">Dontpad!</string>
 
+    <string name="no_internet">No Internet connection! Trying every five seconds.</string>
 
 
 </resources>
