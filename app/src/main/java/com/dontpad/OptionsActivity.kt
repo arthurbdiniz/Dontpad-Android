@@ -52,6 +52,6 @@ class OptionsActivity : AppCompatActivity() {
     private fun getUpdteModeSession(): Boolean {
         val session = PreferenceManager.getDefaultSharedPreferences(applicationContext)
         return session.getBoolean("updateAutomatic", true)
-//        Log.d(TAG, "automaticUpdate : " + updateMode)
     }
+
 }

@@ -24,15 +24,10 @@ import android.net.ConnectivityManager
 import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
-import android.view.LayoutInflater
 import android.view.MenuItem
 
 import android.widget.TextView
 import android.widget.Toast
-
-
-
-
 
 class TextActivity : AppCompatActivity() {
 
@@ -211,7 +206,7 @@ class TextActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
-    fun isOnline(): Boolean {
+    private fun isOnline(): Boolean {
         val conMgr = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val netInfo = conMgr.activeNetworkInfo
 
