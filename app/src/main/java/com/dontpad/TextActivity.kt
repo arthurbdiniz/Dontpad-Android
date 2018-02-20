@@ -21,16 +21,13 @@ import com.dontpad.DAO.RequestHandler
 
 import android.graphics.Color
 import android.net.ConnectivityManager
+import android.preference.PreferenceManager
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.view.MenuItem
 
 import android.widget.TextView
 import android.widget.Toast
-
-
-
-
 
 class TextActivity : AppCompatActivity() {
 
@@ -52,6 +49,11 @@ class TextActivity : AppCompatActivity() {
     private var urlGet = ".body.json"
     private val INTENT_PATH= "path"
 
+    private var timer: Timer? = null
+    private var doAsynchronousTask: TimerTask? = null
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
@@ -62,9 +64,9 @@ class TextActivity : AppCompatActivity() {
         textArea!!.addTextChangedListener(object : TextWatcher {
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (before > 0){
-                    textChanged = true
-                }
+
+                textChanged = true
+                Log.d(TAG, "textChanged")
             }
 
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int,
@@ -88,9 +90,43 @@ class TextActivity : AppCompatActivity() {
 
     }
 
+    override fun onPause() {
+        Log.d(TAG, "OnPause")
+        if(getUpdateType()){ //Automatic Update
+            Log.d(TAG, "isAutomaticUpdate")
+            timer!!.cancel()
+        }
+        super.onPause()
+    }
+
+    override fun onResume() {
+        Log.d(TAG, "OnResume")
+        if(getUpdateType()) { //Automatic Update
+            Log.d(TAG, "isAutomaticUpdate")
+            createAsynchronousTask()
+            timer = Timer()
+            timer!!.schedule(doAsynchronousTask, 0, 5000)
+        }else{ //Manual Update
+            getData()
+        }
+        super.onResume()
+    }
+
+
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        //menu!!.clear()
+
+        val refresh = menu!!.findItem(R.id.refresh)
+        refresh.isVisible = !getUpdateType()
+
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu, menu)
+
         return true
     }
 
@@ -108,6 +144,17 @@ class TextActivity : AppCompatActivity() {
                 true
             }
 
+            R.id.options -> {
+                val intent = Intent(applicationContext, OptionsActivity::class.java)
+                startActivity(intent)
+                true
+            }
+
+            R.id.refresh -> {
+                postData()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -118,18 +165,23 @@ class TextActivity : AppCompatActivity() {
     }
 
     private fun update() {
+        //createAsynchronousTask()
+//        timer = Timer()
+//        timer!!.schedule(doAsynchronousTask, 0, 5000) //execute in every 50000 ms
+    }
+
+    private fun createAsynchronousTask(){
         val handler = Handler()
-        val timer = Timer()
-        val doAsynchronousTask = object : TimerTask() {
+        doAsynchronousTask = object : TimerTask() {
             @SuppressLint("LongLogTag")
             override fun run() {
                 handler.post({
+                    Log.d(TAG, "Update")
                     getData()
                     postData()
                 })
             }
         }
-        timer.schedule(doAsynchronousTask, 0, 5000) //execute in every 50000 ms
     }
 
     private fun getTextParams(): HashMap<String, String> {
@@ -154,7 +206,7 @@ class TextActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
-    fun isOnline(): Boolean {
+    private fun isOnline(): Boolean {
         val conMgr = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val netInfo = conMgr.activeNetworkInfo
 
@@ -182,7 +234,7 @@ class TextActivity : AppCompatActivity() {
 
     private fun getData(){
         if(isOnline()){
-
+            Log.d(TAG, "Get Data")
             val urlGetWithParameters = getLastUpdateUrl(url + urlGet, lastUpdate)
             serverResponse = GetDao(urlGetWithParameters, null).execute("").get()
 
@@ -194,9 +246,10 @@ class TextActivity : AppCompatActivity() {
                     lastUpdate = jsonObject.getString("lastUpdate")
                     body = jsonObject.getString("body")
                     textArea!!.setText(body)
+                    Log.d(TAG, serverResponse)
                 }
 
-                Log.d(TAG + "lastUpdate", lastUpdate)
+//                Log.d(TAG + "lastUpdate", lastUpdate)
 
                 if(sbIsShown){
                     snackbar!!.dismiss()
@@ -211,6 +264,7 @@ class TextActivity : AppCompatActivity() {
 
             if (textChanged) {
                 textChanged = false
+                Log.d(TAG, "Post Data")
 
                 lastUpdate = RequestHandler(url, getTextParams()).execute().get()
                 Log.d(TAG, lastUpdate)
@@ -230,6 +284,12 @@ class TextActivity : AppCompatActivity() {
         sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "")
         sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody)
         startActivity(Intent.createChooser(sharingIntent, resources.getString(R.string.share_using)))
+    }
+
+    private fun getUpdateType(): Boolean {
+        val session = PreferenceManager.getDefaultSharedPreferences(applicationContext)
+        return session.getBoolean("updateAutomatic", true)
+
     }
 
 }
