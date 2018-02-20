@@ -52,6 +52,9 @@ class TextActivity : AppCompatActivity() {
     private var urlGet = ".body.json"
     private val INTENT_PATH= "path"
 
+    private var timer: Timer? = null
+    private var doAsynchronousTask: TimerTask? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_text)
@@ -88,6 +91,20 @@ class TextActivity : AppCompatActivity() {
 
     }
 
+    override fun onPause() {
+        Log.d(TAG, "OnPause")
+        timer!!.cancel()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        Log.d(TAG, "OnResume")
+        createAsynchronousTask()
+        timer = Timer()
+        timer!!.schedule(doAsynchronousTask, 0, 5000)
+        super.onResume()
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu, menu)
@@ -118,18 +135,23 @@ class TextActivity : AppCompatActivity() {
     }
 
     private fun update() {
+        //createAsynchronousTask()
+//        timer = Timer()
+//        timer!!.schedule(doAsynchronousTask, 0, 5000) //execute in every 50000 ms
+    }
+
+    private fun createAsynchronousTask(){
         val handler = Handler()
-        val timer = Timer()
-        val doAsynchronousTask = object : TimerTask() {
+        doAsynchronousTask = object : TimerTask() {
             @SuppressLint("LongLogTag")
             override fun run() {
                 handler.post({
+                    Log.d(TAG, "Update")
                     getData()
                     postData()
                 })
             }
         }
-        timer.schedule(doAsynchronousTask, 0, 5000) //execute in every 50000 ms
     }
 
     private fun getTextParams(): HashMap<String, String> {
@@ -194,6 +216,7 @@ class TextActivity : AppCompatActivity() {
                     lastUpdate = jsonObject.getString("lastUpdate")
                     body = jsonObject.getString("body")
                     textArea!!.setText(body)
+                    Log.d(TAG, serverResponse)
                 }
 
                 Log.d(TAG + "lastUpdate", lastUpdate)
